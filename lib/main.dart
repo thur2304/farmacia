@@ -62,3 +62,53 @@ final List&It ; Produto&gt; _produtos =[
   Produto(nome:'Ibuprofeno',quantidade:3,qrcode:'11223');
 ];
 }
+//Controlador que gerencia o estado da tela pricipal
+final _seachController = TextEditingController();
+
+  //lista de produtos a ser exibida na tela (pode ser filtrada)
+List<Produto> _produtosFiltrados = [];
+
+//Chamado quando o widget é criado pela primeira vez.
+@override
+void initState() {
+  super.initState();
+  //Inicializa a lista filtrada com todos os produtos.
+  _produtosFiltrados = List.from(_produtos);
+  //Adiciona um "ouvinte" para o campo de pesquisa que chama _filtrarProdutos sempre que o produto muda
+  _seachController.addListener(_filtrarProdutos);
+}
+//Chamado quando o widget é descartado (para liberar memória)
+@override
+void dispose() {
+  //Remove o "ouvinte" e descarta o controle
+  _searchController.removeListener (_filtrarProdutos);
+  _searchController.dispose();
+  super.dispose();
+}
+//Filtrar a lista de produtos com base no texto digitado na pesquisa.
+void _filtrarProdutos (){
+  final query = _seachController.text.toLowerCase();
+  setState((){
+    _produtosFiltrados = _Produtos.where((produto){
+      return produto.nome.toLowerCase().contains(query);
+    }.toList();
+  };
+}
+//Diminuir a quantidade do estoque de um produto com base no QR Code
+void _darBaixaEstoque(String qrcode){
+  setState(() {
+    final produtoIndex = _produtos.indexWhere((p) => p.qrCode == qrCode);
+    if (produtoIndex! = -1) {
+      if (_produtos[produtoIndex].quantidade > 0) {
+        _produtos[produtoIndex].quantidade--;
+        _filtrarProdutos();
+      }
+    } else {
+      //exibe uma mensagem se o qrCode nao responder a nenhum produto
+      scaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(context text('Produto não encontrado!')),
+     );
+    }
+  });
+}
+
